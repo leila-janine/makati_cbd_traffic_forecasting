@@ -27,7 +27,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 🔑 INSERT YOUR LIVE API KEYS HERE FOR THE DEFENSE
+# 🔑 INSERT LIVE API KEYS HERE FOR THE DEFENSE
 # ==============================================================================
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Makati_City_Seal.svg/1200px-Makati_City_Seal.svg.png", width=100)
@@ -114,7 +114,9 @@ def load_spatial_graph():
 
 def fetch_live_apis():
     """Pings TomTom and OpenWeatherMap for the absolute latest real-time data."""
-    current_time = datetime.now()
+    # THE FIX: Streamlit Cloud runs on UTC. We must manually offset by +8 Hours for Philippine Standard Time!
+    current_time = datetime.utcnow() + timedelta(hours=8)
+    
     try:
         weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={MAKATI_LAT}&lon={MAKATI_LON}&appid={OWM_API_KEY}&units=metric"
         res = requests.get(weather_url, timeout=5).json()
@@ -290,7 +292,7 @@ with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
 # 4. STREAMLIT UI DASHBOARD (MAP CENTRIC)
 # ==============================================================================
 if system_ready:
-    st.info(f"Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}**")
+    st.info(f"Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}** (Philippine Standard Time)")
     
     st.subheader("Live Congestion Map")
     
@@ -351,7 +353,7 @@ if system_ready:
     st.divider()
     
     st.subheader("Most Congested Spots List")
-    st.markdown(" These are the segments requiring immediate attention based on future congestion drops.")
+    st.markdown("Segments requiring immediate attention based on future congestion drops.")
     
     results_data = {
         'Location': [idx_to_name[i] for i in range(n_nodes)],
