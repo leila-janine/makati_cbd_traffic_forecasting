@@ -3,8 +3,6 @@ pandas
 numpy
 pyarrow
 torch
-torch-scatter
-torch-sparse
 torch-geometric
 torch-geometric-temporal
 requests
