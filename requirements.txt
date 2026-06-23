@@ -1,8 +1,13 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+--find-links https://data.pyg.org/whl/torch-2.2.2+cpu.html
+
 streamlit
 pandas
 numpy
 pyarrow
-torch
+torch==2.2.2
+torch-scatter
+torch-sparse
 torch-geometric
 torch-geometric-temporal
 requests
