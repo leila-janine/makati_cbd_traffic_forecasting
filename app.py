@@ -33,12 +33,12 @@ with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Makati_City_Seal.svg/1200px-Makati_City_Seal.svg.png", width=100)
     st.title("System Controls")
     st.markdown("API Integrations")
-    TOMTOM_API_KEY = st.text_input("TomTom API Key", value="YOUR_TOMTOM_API_KEY", type="password")
-    OWM_API_KEY = st.text_input("OpenWeatherMap API Key", value="YOUR_OPENWEATHERMAP_API_KEY", type="password")
+    TOMTOM_API_KEY = st.text_input("TomTom API Key", value="s6lUv0XMtFGh1cDXSeJJKrE0oLWb95nK", type="password")
+    OWM_API_KEY = st.text_input("OpenWeatherMap API Key", value="c0d396ba6de2119f4b396f73e5d64273", type="password")
     st.markdown("---")
     
     # THE FIX: Added an Auto-Refresh Toggle for your Defense!
-    auto_refresh = st.checkbox("🔄 Enable 1-Minute Auto-Refresh", value=False)
+    auto_refresh = st.checkbox("Enable 1-Minute Auto-Refresh", value=False)
     
     st.markdown("---")
     st.markdown("**Powered by A3T-GCN**\n\nAnalyzes Spatial (Graph) and Temporal (Time-Series) dependencies simultaneously.")
@@ -254,7 +254,7 @@ def get_congestion_color(speed):
 # ==============================================================================
 # 3. RUN MULTI-HORIZON INFERENCE
 # ==============================================================================
-st.title("🌍 UP NOAH: Makati Traffic Prototype")
+st.title("Makati CBD Traffic Forecast")
 st.markdown("Live spatial-temporal forecasting of the Makati Central Business District.")
 
 with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
@@ -290,9 +290,9 @@ with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
 # 4. STREAMLIT UI DASHBOARD (MAP CENTRIC)
 # ==============================================================================
 if system_ready:
-    st.info(f"📡 System Synchronized. Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}**")
+    st.info(f"Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}**")
     
-    st.subheader("🗺️ Live Congestion Map & Time-Traveler")
+    st.subheader("Live Congestion Map")
     
     map_horizon = st.select_slider(
         "Select Time Horizon to Visualize on Map:",
@@ -329,7 +329,7 @@ if system_ready:
     
     st.divider()
     
-    st.subheader("📈 Network Speed Trajectory")
+    st.subheader("Speed Trajectory")
     
     avg_speeds = {mins: np.mean(preds) for mins, preds in predictions_kmh.items()}
     
@@ -350,8 +350,8 @@ if system_ready:
 
     st.divider()
     
-    st.subheader("🚨 Critical Hotspots List")
-    st.markdown("Segments requiring immediate attention based on future congestion drops.")
+    st.subheader("Most Congested Spots List")
+    st.markdown(" These are the segments requiring immediate attention based on future congestion drops.")
     
     results_data = {
         'Location': [idx_to_name[i] for i in range(n_nodes)],
