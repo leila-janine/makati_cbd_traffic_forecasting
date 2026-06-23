@@ -33,8 +33,8 @@ with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Makati_City_Seal.svg/1200px-Makati_City_Seal.svg.png", width=100)
     st.title("System Controls")
     st.markdown("API Integrations")
-    TOMTOM_API_KEY = st.text_input("TomTom API Key", value="s6lUv0XMtFGh1cDXSeJJKrE0oLWb95nK", type="password")
-    OWM_API_KEY = st.text_input("OpenWeatherMap API Key", value="c0d396ba6de2119f4b396f73e5d64273", type="password")
+    TOMTOM_API_KEY = st.text_input("TomTom API Key", value="YOUR_TOMTOM_API_KEY", type="password")
+    OWM_API_KEY = st.text_input("OpenWeatherMap API Key", value="YOUR_OPENWEATHERMAP_API_KEY", type="password")
     st.markdown("---")
     
     # THE FIX: Added an Auto-Refresh Toggle for your Defense!
@@ -49,7 +49,10 @@ MAKATI_LAT, MAKATI_LON = 14.5570, 121.0204
 SEQ_LEN = 12
 HIDDEN_DIM = 64
 NUM_FEATURES = 6
+
+# Smart Pathing: Uses CSV locally, but uses the compressed Parquet online!
 CSV_PATH = "makati_aug2024_hybrid_master.csv"
+PARQUET_PATH = "makati_aug2024_hybrid_master.parquet"
 JSON_PATH = "Makati_CBD_Traffic_Data.json"
 
 MODEL_WEIGHTS = {
@@ -136,7 +139,12 @@ def fetch_live_apis():
 # REDUCED CACHE TTL: Lowered from 900 seconds (15 mins) to 60 seconds (1 min) for more responsive defense testing
 @st.cache_data(ttl=60)
 def construct_live_tensor(n_nodes, seg_ids):
-    df = pd.read_csv(CSV_PATH)
+    # THE FIX: Smart Deployment Data Loading
+    if os.path.exists(PARQUET_PATH):
+        df = pd.read_parquet(PARQUET_PATH)
+    else:
+        df = pd.read_csv(CSV_PATH)
+        
     min_speed = df['current_speed'].min()
     max_speed = df['current_speed'].max()
     
@@ -246,7 +254,7 @@ def get_congestion_color(speed):
 # ==============================================================================
 # 3. RUN MULTI-HORIZON INFERENCE
 # ==============================================================================
-st.title("Makati CBD Traffic Forecasting")
+st.title("🌍 UP NOAH: Makati Traffic Prototype")
 st.markdown("Live spatial-temporal forecasting of the Makati Central Business District.")
 
 with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
@@ -282,9 +290,9 @@ with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
 # 4. STREAMLIT UI DASHBOARD (MAP CENTRIC)
 # ==============================================================================
 if system_ready:
-    st.info(f"Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}**")
+    st.info(f"📡 System Synchronized. Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}**")
     
-    st.subheader("Live Congestion Map & Time-Traveler")
+    st.subheader("🗺️ Live Congestion Map & Time-Traveler")
     
     map_horizon = st.select_slider(
         "Select Time Horizon to Visualize on Map:",
@@ -321,7 +329,7 @@ if system_ready:
     
     st.divider()
     
-    st.subheader("Speed Trajectory")
+    st.subheader("📈 Network Speed Trajectory")
     
     avg_speeds = {mins: np.mean(preds) for mins, preds in predictions_kmh.items()}
     
@@ -342,20 +350,22 @@ if system_ready:
 
     st.divider()
     
-    st.subheader("Most Congested Spots List")
+    st.subheader("🚨 Critical Hotspots List")
     st.markdown("Segments requiring immediate attention based on future congestion drops.")
     
     results_data = {
         'Location': [idx_to_name[i] for i in range(n_nodes)],
         'Segment_ID': [idx_to_seg[i] for i in range(n_nodes)]
     }
-    results_data['Live (km/h)'] = predictions_kmh.get(0, np.zeros(n_nodes))
-    if 15 in predictions_kmh: results_data['+15 Min'] = predictions_kmh[15]
-    if 30 in predictions_kmh: results_data['+30 Min'] = predictions_kmh[30]
-    if 60 in predictions_kmh: results_data['+60 Min'] = predictions_kmh[60]
+    
+    # THE FIX: Renamed the columns so they sort alphabetically AND chronologically!
+    results_data['00 Min (Live)'] = predictions_kmh.get(0, np.zeros(n_nodes))
+    if 15 in predictions_kmh: results_data['15 Min Forecast'] = predictions_kmh[15]
+    if 30 in predictions_kmh: results_data['30 Min Forecast'] = predictions_kmh[30]
+    if 60 in predictions_kmh: results_data['60 Min Forecast'] = predictions_kmh[60]
         
     results_df = pd.DataFrame(results_data)
-    sort_target = '+15 Min' if '+15 Min' in results_df.columns else 'Live (km/h)'
+    sort_target = '15 Min Forecast' if '15 Min Forecast' in results_df.columns else '00 Min (Live)'
     worst_segments = results_df.sort_values(by=sort_target, ascending=True).head(10).reset_index(drop=True)
     
     colA, colB = st.columns([1.5, 1])
