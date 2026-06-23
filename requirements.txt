@@ -1,9 +1,10 @@
 streamlit
 pandas
 numpy
-torch==2.2.2 --index-url https://download.pytorch.org/whl/cpu
-torch-scatter -f https://data.pyg.org/whl/torch-2.2.2+cpu.html
-torch-sparse -f https://data.pyg.org/whl/torch-2.2.2+cpu.html
+pyarrow
+torch
+torch-scatter
+torch-sparse
 torch-geometric
 torch-geometric-temporal
 requests
