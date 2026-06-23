@@ -30,7 +30,6 @@ st.markdown("""
 # 🔑 INSERT LIVE API KEYS HERE FOR THE DEFENSE
 # ==============================================================================
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Makati_City_Seal.svg/1200px-Makati_City_Seal.svg.png", width=100)
     st.title("System Controls")
     st.markdown("API Integrations")
     TOMTOM_API_KEY = st.text_input("TomTom API Key", value="s6lUv0XMtFGh1cDXSeJJKrE0oLWb95nK", type="password")
