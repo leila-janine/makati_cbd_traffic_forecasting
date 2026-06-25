@@ -294,6 +294,16 @@ if system_ready:
         filled=True,
     )
     
+    # NEW FIX: Custom HTML Legend placed right above the map
+    st.markdown("""
+        <div style="display: flex; justify-content: center; gap: 25px; padding: 10px; background-color: #1e2530; border-radius: 8px; margin-bottom: 15px; border: 1px solid #4A90E2;">
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(139, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Severe Congestion</b> (< 10 km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Heavy Traffic</b> (10-20 km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 165, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Moderate</b> (20-35 km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(0, 255, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Free Flow</b> (35+ km/h)</span></div>
+        </div>
+    """, unsafe_allow_html=True)
+    
     st.pydeck_chart(pdk.Deck(
         map_provider="carto",
         map_style=pdk.map_styles.CARTO_DARK,
@@ -342,7 +352,7 @@ if system_ready:
     sort_target = '15 Min Forecast' if '15 Min Forecast' in results_df.columns else '00 Min (Live)'
     worst_segments = results_df.sort_values(by=sort_target, ascending=True).head(10).reset_index(drop=True)
     
-     # FIX 1: Display the table using the full width of the screen
+    # FIX 1: Display the table using the full width of the screen
     st.dataframe(
         worst_segments.style.format(precision=1),
         use_container_width=True
@@ -362,6 +372,7 @@ if system_ready:
     # FIX 3: Draw the chart using the full width of the screen below the table
     top_5 = chart_df.drop(columns=['Segment_ID', 'Location', 'Short_Loc']).set_index('Unique Location').T
     st.line_chart(top_5, height=350)
+        
     # ==============================================================================
     # 5. AUTO-REFRESH LOGIC
     # ==============================================================================
