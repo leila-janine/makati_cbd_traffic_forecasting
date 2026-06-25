@@ -379,13 +379,11 @@ if system_ready:
         
    with colB:
         st.markdown("**1-Hour Plunge (Top 5 Worst)**")
-        # THE FIX: Create unique labels using the last 4 digits of the Segment ID 
-        # so Streamlit doesn't merge duplicate street names into a zigzag!
-        chart_df = worst_segments.head(5).copy()
-        chart_df['Unique Location'] = chart_df['Location'] + " (" + chart_df['Segment_ID'].astype(str).str[-4:] + ")"
+            chart_df = worst_segments.head(5).copy()
+            chart_df['Unique Location'] = chart_df['Location'] + " (" + chart_df['Segment_ID'].astype(str).str[-4:] + ")"
         
-        top_5 = chart_df.drop(columns=['Segment_ID', 'Location']).set_index('Unique Location').T
-        st.line_chart(top_5, height=350)
+            top_5 = chart_df.drop(columns=['Segment_ID', 'Location']).set_index('Unique Location').T
+            st.line_chart(top_5, height=350)
         
     # ==============================================================================
     # 5. AUTO-REFRESH LOGIC
