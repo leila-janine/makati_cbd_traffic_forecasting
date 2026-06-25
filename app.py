@@ -6,7 +6,7 @@ import torch
 import os
 import requests
 import pydeck as pdk
-import time  # Imported for auto-refresh
+import time  
 import torch.nn as nn
 from scipy.spatial.distance import cdist
 from datetime import datetime, timedelta
@@ -36,7 +36,7 @@ with st.sidebar:
     OWM_API_KEY = st.text_input("OpenWeatherMap API Key", value="c0d396ba6de2119f4b396f73e5d64273", type="password")
     st.markdown("---")
     
-    # THE FIX: Added an Auto-Refresh Toggle for your Defense!
+    # Auto-Refresh Toggle for Defense
     auto_refresh = st.checkbox("Enable 1-Minute Auto-Refresh", value=False)
     
     st.markdown("---")
@@ -44,12 +44,12 @@ with st.sidebar:
 
 MAKATI_LAT, MAKATI_LON = 14.5570, 121.0204
 
-# Hardcoded hyperparameters matching your training script
+# Hardcoded hyperparameters matching training script
 SEQ_LEN = 12
 HIDDEN_DIM = 64
 NUM_FEATURES = 6
 
-# Smart Pathing: Uses CSV locally, but uses the compressed Parquet online!
+# Smart Pathing: Uses CSV locally, but uses the compressed Parquet online
 CSV_PATH = "makati_aug2024_hybrid_master.csv"
 PARQUET_PATH = "makati_aug2024_hybrid_master.parquet"
 JSON_PATH = "Makati_CBD_Traffic_Data.json"
@@ -99,7 +99,7 @@ def load_spatial_graph():
         lat = np.mean([c['latitude'] for c in coords])
         lon = np.mean([c['longitude'] for c in coords])
         centroids[idx] = [lat, lon]
-        # Extract Street Name if available, fallback to nicely formatted Coordinates
+        
         street_name = seg.get('streetName', seg.get('roadName', ''))
         if not street_name:
             street_name = f"Unnamed Segment (Lat: {lat:.4f}, Lon: {lon:.4f})"
@@ -113,7 +113,6 @@ def load_spatial_graph():
 
 def fetch_live_apis():
     """Pings TomTom and OpenWeatherMap for the absolute latest real-time data."""
-    # THE FIX: Streamlit Cloud runs on UTC. We must manually offset by +8 Hours for Philippine Standard Time!
     current_time = datetime.utcnow() + timedelta(hours=8)
     
     try:
@@ -128,7 +127,7 @@ def fetch_live_apis():
         res = requests.get(traffic_url, timeout=5).json()
         live_speed = res['flowSegmentData']['currentSpeed']
     except:
-        live_speed = 20.0 # Fallback
+        live_speed = 20.0 
 
     hour_sin = np.sin(2 * np.pi * current_time.hour / 23.0)
     hour_cos = np.cos(2 * np.pi * current_time.hour / 23.0)
@@ -137,10 +136,8 @@ def fetch_live_apis():
     
     return live_speed, live_rain, hour_sin, hour_cos, day_sin, day_cos, current_time
 
-# REDUCED CACHE TTL: Lowered from 900 seconds (15 mins) to 60 seconds (1 min) for more responsive defense testing
 @st.cache_data(ttl=60)
 def construct_live_tensor(n_nodes, seg_ids):
-    # THE FIX: Smart Deployment Data Loading
     if os.path.exists(PARQUET_PATH):
         df = pd.read_parquet(PARQUET_PATH)
     else:
@@ -162,10 +159,8 @@ def construct_live_tensor(n_nodes, seg_ids):
     for feat in features:
         p = history_df.pivot(index='timestamp', columns='segment_id', values=feat)
         p = p.reindex(columns=seg_ids)
-        # FIX: Fill missing timestamps first, then copy speeds to unknown segments so they aren't all exactly 0!
         p = p.ffill().bfill()
         p = p.ffill(axis=1).bfill(axis=1).fillna(0)
-        # Take exactly the last 11 timestamps
         p = p.tail(11)
         pivot_list.append(p.values)
         
@@ -178,9 +173,8 @@ def construct_live_tensor(n_nodes, seg_ids):
     
     live_speed, live_rain, h_sin, h_cos, d_sin, d_cos, current_time = fetch_live_apis()
     
-    # Create the Live Slice based on the latest historical blueprint
     live_slice = np.zeros((1, n_nodes, NUM_FEATURES))
-    live_slice[0, :, 0] = history_matrix[-1, :, 0] # Copy spatial distribution
+    live_slice[0, :, 0] = history_matrix[-1, :, 0] 
     live_slice[0, :, 1] = live_rain
     live_slice[0, :, 2] = h_sin
     live_slice[0, :, 3] = h_cos
@@ -189,34 +183,23 @@ def construct_live_tensor(n_nodes, seg_ids):
     
     live_X = np.concatenate([history_matrix, live_slice], axis=0)
     
-    # ==============================================================================
-    # THE SPATIAL FIX: Simulate Street-by-Street variation using historical blueprints
-    # ==============================================================================
-    # 1. Get the average speed of the historical spatial blueprint
     base_avg_kmh = np.mean(live_X[-1, :, 0]) * (max_speed - min_speed) + min_speed
-    
-    # 2. Find difference between the single live TomTom speed and the blueprint average
     shift_kmh = live_speed - base_avg_kmh
     
     for i in range(12):
-        # Apply Time Smoothing
         seq_time = current_time - timedelta(minutes=15 * (11 - i))
         live_X[i, :, 2] = np.sin(2 * np.pi * seq_time.hour / 23.0)
         live_X[i, :, 3] = np.cos(2 * np.pi * seq_time.hour / 23.0)
         live_X[i, :, 4] = np.sin(2 * np.pi * seq_time.weekday() / 6.0)
         live_X[i, :, 5] = np.cos(2 * np.pi * seq_time.weekday() / 6.0)
         
-        # 3. Apply Spatial Mapping: Shift diverse blueprint speeds to match Live Reality
         step_speeds_kmh = live_X[i, :, 0] * (max_speed - min_speed) + min_speed
-        
-        # Add a tiny bit of organic noise so segments aren't perfectly identical!
         noise = np.random.normal(0, 1.0, n_nodes)
         shifted_kmh = np.clip(step_speeds_kmh + shift_kmh + noise, 0.0, max_speed)
         
         live_X[i, :, 0] = (shifted_kmh - min_speed) / (max_speed - min_speed)
         live_X[i, :, 1] = live_rain
 
-    # Extract final real-world diverse speeds for the Dashboard Map
     final_live_speeds = live_X[-1, :, 0] * (max_speed - min_speed) + min_speed
     
     return live_X, current_time, min_speed, max_speed, final_live_speeds
@@ -239,18 +222,15 @@ def load_all_models():
             st.warning(f"Could not load model for {mins}m horizon. Ensure '{actual_path}' exists. Error: {e}")
     return models, device
 
-# ==============================================================================
-# Helper Function: Google Maps Style Congestion Colors
-# ==============================================================================
 def get_congestion_color(speed):
     if speed < 10: 
-        return [139, 0, 0, 220]      # Dark Red (Severe Congestion)
+        return [139, 0, 0, 220]      # Dark Red 
     elif speed < 20: 
-        return [255, 0, 0, 220]      # Red (Heavy Traffic)
+        return [255, 0, 0, 220]      # Red 
     elif speed < 35: 
-        return [255, 165, 0, 220]    # Orange (Moderate Traffic)
+        return [255, 165, 0, 220]    # Orange 
     else: 
-        return [0, 255, 0, 220]      # Green (Clear/Free Flow)
+        return [0, 255, 0, 220]      # Green 
 
 # ==============================================================================
 # 3. RUN MULTI-HORIZON INFERENCE
@@ -261,25 +241,19 @@ st.markdown("Live spatial-temporal forecasting of the Makati Central Business Di
 with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
     try:
         edge_index, n_nodes, idx_to_seg, idx_to_name, centroids = load_spatial_graph()
-        
         seg_ids_list = [idx_to_seg[i] for i in range(n_nodes)]
         live_X, latest_timestamp, min_speed, max_speed, diverse_live_speeds = construct_live_tensor(n_nodes, seg_ids_list)
-        
         models, device = load_all_models()
         
         live_X_tensor = torch.tensor(live_X.tolist(), dtype=torch.float32).unsqueeze(0).to(device)
         edge_index = edge_index.to(device)
-        
         predictions_kmh = {0: diverse_live_speeds} 
         
         with torch.no_grad():
             for mins, model in models.items():
                 prediction_scaled = model(live_X_tensor, edge_index)
-                
                 pred_list = prediction_scaled.detach().cpu().flatten().tolist()
-                pred_np = np.array(pred_list)
-                pred_np = np.clip(pred_np, 0.0, 1.0)
-                
+                pred_np = np.clip(np.array(pred_list), 0.0, 1.0)
                 predictions_kmh[mins] = pred_np * (max_speed - min_speed) + min_speed
         
         system_ready = True
@@ -329,7 +303,7 @@ if system_ready:
     ))
     
     st.divider()
-    
+
     st.subheader("Speed Trajectory")
     
     avg_speeds = {mins: np.mean(preds) for mins, preds in predictions_kmh.items()}
@@ -359,7 +333,6 @@ if system_ready:
         'Segment_ID': [idx_to_seg[i] for i in range(n_nodes)]
     }
     
-    # THE FIX: Renamed the columns so they sort alphabetically AND chronologically!
     results_data['00 Min (Live)'] = predictions_kmh.get(0, np.zeros(n_nodes))
     if 15 in predictions_kmh: results_data['15 Min Forecast'] = predictions_kmh[15]
     if 30 in predictions_kmh: results_data['30 Min Forecast'] = predictions_kmh[30]
@@ -379,7 +352,9 @@ if system_ready:
         
     with colB:
         st.markdown("**1-Hour Plunge (Top 5 Worst)**")
-        chart_df['Unique Location'] = chart_df['Location'] + " (" + chart_df['Segment_ID'].astype(str).str[-4:] + ")"
+        # THE FIX: Safely initialize chart_df and use the bulletproof lambda format
+        chart_df = worst_segments.head(5).copy()
+        chart_df['Unique Location'] = chart_df.apply(lambda row: f"{row['Location']} ({str(row['Segment_ID'])[-4:]})", axis=1)
         
         top_5 = chart_df.drop(columns=['Segment_ID', 'Location']).set_index('Unique Location').T
         st.line_chart(top_5, height=350)
