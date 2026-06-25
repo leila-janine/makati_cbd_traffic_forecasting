@@ -265,7 +265,7 @@ with st.spinner("Establishing Live Feed & Generating Spatial Tensors..."):
 # 4. STREAMLIT UI DASHBOARD (MAP CENTRIC)
 # ==============================================================================
 if system_ready:
-    st.info(f"Latest data timestamp: **{latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')}** (Philippine Standard Time)")
+    st.markdown(f"**Latest data timestamp:** {latest_timestamp.strftime('%Y-%m-%d %H:%M:%S')} (Philippine Standard Time)")
     
     st.subheader("Live Congestion Map")
     
