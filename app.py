@@ -342,23 +342,26 @@ if system_ready:
     sort_target = '15 Min Forecast' if '15 Min Forecast' in results_df.columns else '00 Min (Live)'
     worst_segments = results_df.sort_values(by=sort_target, ascending=True).head(10).reset_index(drop=True)
     
-    colA, colB = st.columns([1.5, 1])
+     # FIX 1: Display the table using the full width of the screen
+    st.dataframe(
+        worst_segments.style.format(precision=1),
+        use_container_width=True
+    )
     
-    with colA:
-        st.dataframe(
-            worst_segments.style.format(precision=1),
-            use_container_width=True
-        )
-        
-    with colB:
-        st.markdown("**1-Hour Plunge (Top 5 Worst)**")
-        # THE FIX: Safely initialize chart_df and use the bulletproof lambda format
-        chart_df = worst_segments.head(5).copy()
-        chart_df['Unique Location'] = chart_df.apply(lambda row: f"{row['Location']} ({str(row['Segment_ID'])[-4:]})", axis=1)
-        
-        top_5 = chart_df.drop(columns=['Segment_ID', 'Location']).set_index('Unique Location').T
-        st.line_chart(top_5, height=350)
-        
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("**📉 1-Hour Plunge Trajectory (Top 5 Worst Segments)**")
+    
+    chart_df = worst_segments.head(5).copy()
+    
+    # FIX 2: Abbreviate long words to make the legend look incredibly clean!
+    chart_df['Short_Loc'] = chart_df['Location'].apply(
+        lambda x: x.replace(' Street', ' St.').replace(' Avenue', ' Ave.').replace(' Road', ' Rd.')
+    )
+    chart_df['Unique Location'] = chart_df['Short_Loc'] + " (" + chart_df['Segment_ID'].astype(str).str[-4:] + ")"
+    
+    # FIX 3: Draw the chart using the full width of the screen below the table
+    top_5 = chart_df.drop(columns=['Segment_ID', 'Location', 'Short_Loc']).set_index('Unique Location').T
+    st.line_chart(top_5, height=350)
     # ==============================================================================
     # 5. AUTO-REFRESH LOGIC
     # ==============================================================================
