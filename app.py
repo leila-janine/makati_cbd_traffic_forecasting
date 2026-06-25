@@ -297,10 +297,10 @@ if system_ready:
     # NEW FIX: Custom HTML Legend placed right above the map (Clean UI)
     st.markdown("""
         <div style="display: flex; justify-content: center; gap: 25px; padding: 5px 0; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(139, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Severe Congestion</b> (< 10 km/h)</span></div>
-            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Heavy Traffic</b> (10-20 km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(139, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Heavy Traffic</b> (< 10 km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Slow</b> (10-20 km/h)</span></div>
             <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 165, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Moderate</b> (20-35 km/h)</span></div>
-            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(0, 255, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Free Flow</b> (35+ km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(0, 255, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>FFast</b> (35+ km/h)</span></div>
         </div>
     """, unsafe_allow_html=True)
     
