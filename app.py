@@ -300,7 +300,7 @@ if system_ready:
             <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(139, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Heavy Traffic</b> (< 10 km/h)</span></div>
             <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 0, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Slow</b> (10-20 km/h)</span></div>
             <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(255, 165, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Moderate</b> (20-35 km/h)</span></div>
-            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(0, 255, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>FFast</b> (35+ km/h)</span></div>
+            <div style="display: flex; align-items: center;"><div style="width: 14px; height: 14px; background-color: rgb(0, 255, 0); border-radius: 50%; margin-right: 8px;"></div><span style="font-size: 14px; color: white;"><b>Fast</b> (35+ km/h)</span></div>
         </div>
     """, unsafe_allow_html=True)
     
@@ -359,7 +359,7 @@ if system_ready:
     )
     
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("**📉 1-Hour Plunge Trajectory (Top 5 Worst Segments)**")
+    st.markdown("**1-Hour Plunge Trajectory (Top 5 Worst Spots)**")
     
     chart_df = worst_segments.head(5).copy()
     
